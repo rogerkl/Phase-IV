@@ -1,7 +1,7 @@
-# Phase
+# Phase IV
 Phase Modulator / Frequency Shifter
 
-**Phase** is a program to run on `Electrosmith patch.Init()` that can perform phase modulation 
+**Phase IV** is a program to run on `Electrosmith patch.Init()` that can perform phase modulation 
 and frequency shifting by quadrature modulation, as described [here](https://en.wikipedia.org/wiki/In-phase_and_quadrature_components).
 
 ## How it works

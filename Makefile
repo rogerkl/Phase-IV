@@ -1,8 +1,8 @@
 # Project Name
-TARGET = Phase
+TARGET = PhaseIV
 
 # Sources
-CPP_SOURCES = Phase.cpp
+CPP_SOURCES = PhaseIV.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../DaisyExamples/libDaisy
