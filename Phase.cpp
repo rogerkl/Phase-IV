@@ -89,15 +89,15 @@ float cv2_alt = 0.5; // mode
 float cv3_alt = 0.;  // hp freq
 float cv4_alt = 1.;  // lp freq
 
-int cv1_100_norm = 0;
-int cv2_100_norm = 0;
+int cv1_100_norm = 50;
+int cv2_100_norm = 50;
 int cv3_100_norm = 0;
 int cv4_100_norm = 0;
 
-int cv1_100_alt = 0;
-int cv2_100_alt = 0;
+int cv1_100_alt = 100;
+int cv2_100_alt = 50;
 int cv3_100_alt = 0;
-int cv4_100_alt = 0;
+int cv4_100_alt = 100;
 
 #define MAX_FILTER 20000.f
 #define MIN_FILTER 20.f
