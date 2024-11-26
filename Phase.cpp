@@ -1,4 +1,4 @@
-#define BS 1
+#define BS 16
 #define SR 48000
 
 #include "daisy_patch_sm.h"
