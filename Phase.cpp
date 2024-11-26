@@ -147,16 +147,16 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             svfOscR.next();
             if (mode == MODE_FS_MODOUT && !modIn)
             {
-                out[0][i] = svfOscL.cos() * volume_out;
-                out[1][i] = svfOscL.sin() * volume_out;
+                out[1][i] = svfOscL.cos() * volume_out;
+                out[0][i] = svfOscL.sin() * volume_out;
             }
             else
             {
                 // NB if modulation from input we can't really make sure amplitude is correct
                 // so we probably don't get correct frequency shifter balance
                 getRate((modIn ? in[1][i] : svfOscL.sin()) * (mode == MODE_FS_MODOUT ? 1. : depthL), lookupCosSin[0]);
-                out[0][i] = lookupCosSin[0][0] * volume_out;
-                out[1][i] = lookupCosSin[0][1] * volume_out;
+                out[1][i] = lookupCosSin[0][0] * volume_out;
+                out[0][i] = lookupCosSin[0][1] * volume_out;
             }
         }
     }
