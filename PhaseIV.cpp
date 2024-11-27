@@ -45,6 +45,7 @@ bool mbWasPressed;
 #define CR static_cast<size_t>(SR / BS)
 
 HilbertIir hilbertM2S;
+HilbertIir hilbertModInFS;
 
 HilbertIir hilbertL1;
 HilbertIir hilbertR1;
@@ -139,22 +140,52 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
     static float32_t oscCos[2][BS];
     static float32_t lookupCosSin[2][2];
 
+    if ((mode == MODE_FREQUENCY_SHIFT || mode == MODE_FS_MODOUT) && modIn)
+    {
+        hilbertModInFS.process(in[1], tmpHL, size);
+    }
+
+    for (size_t i = 0; i < size; i++)
+    {
+        svfOscL.next();
+        svfOscR.next();
+        if ((mode == MODE_FREQUENCY_SHIFT || mode == MODE_FS_MODOUT) && !modIn)
+        {
+            oscSin[0][i] = svfOscL.sin();
+            oscCos[0][i] = svfOscL.cos();
+            oscSin[1][i] = svfOscR.sin();
+            oscCos[1][i] = svfOscR.cos();
+        }
+        else if ((mode == MODE_FREQUENCY_SHIFT || mode == MODE_FS_MODOUT) && modIn)
+        {
+            oscSin[0][i] = tmpHL[1][i];
+            oscCos[0][i] = tmpHL[0][i];
+            oscSin[1][i] = tmpHL[1][i];
+            oscCos[1][i] = tmpHL[0][i];
+        }
+        else
+        {
+            getRate((modIn ? in[1][i] : svfOscL.sin()) * depthL, lookupCosSin[0]);
+            getRate((modIn ? in[1][i] : svfOscR.sin()) * depthR, lookupCosSin[1]);
+            oscSin[0][i] = lookupCosSin[0][1];
+            oscCos[0][i] = lookupCosSin[0][0];
+            oscSin[1][i] = lookupCosSin[1][1];
+            oscCos[1][i] = lookupCosSin[1][0];
+        }
+    }
+
     if (mode == MODE_PM_MODOUT || mode == MODE_FS_MODOUT)
     {
         for (size_t i = 0; i < size; i++)
         {
-            svfOscL.next();
-            svfOscR.next();
-            if (mode == MODE_FS_MODOUT && !modIn)
+            if (mode == MODE_FS_MODOUT)
             {
-                out[1][i] = svfOscL.cos() * volume_out;
-                out[0][i] = svfOscL.sin() * volume_out;
+                out[1][i] = oscSin[0][i] * volume_out;
+                out[0][i] = oscSin[1][i] * volume_out;
             }
             else
             {
-                // NB if modulation from input we can't really make sure amplitude is correct
-                // so we probably don't get correct frequency shifter balance
-                getRate((modIn ? in[1][i] : svfOscL.sin()) * (mode == MODE_FS_MODOUT ? 1. : depthL), lookupCosSin[0]);
+                getRate((modIn ? in[1][i] : oscSin[1][i]) * depthL, lookupCosSin[0]);
                 out[1][i] = lookupCosSin[0][0] * volume_out;
                 out[0][i] = lookupCosSin[0][1] * volume_out;
             }
@@ -200,26 +231,6 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
         for (size_t i = 0; i < size; i++)
         {
-            svfOscL.next();
-            svfOscR.next();
-            if (mode == MODE_FREQUENCY_SHIFT && !modIn)
-            {
-                oscSin[0][i] = svfOscL.sin();
-                oscCos[0][i] = svfOscL.cos();
-                oscSin[1][i] = svfOscR.sin();
-                oscCos[1][i] = svfOscR.cos();
-            }
-            else
-            {
-                getRate((modIn ? in[1][i] : svfOscL.sin()) * (mode == MODE_FREQUENCY_SHIFT ? 1. : depthL),
-                        lookupCosSin[0]);
-                getRate((modIn ? in[1][i] : svfOscR.sin()) * (mode == MODE_FREQUENCY_SHIFT ? 1. : depthR),
-                        lookupCosSin[1]);
-                oscSin[0][i] = lookupCosSin[0][1];
-                oscCos[0][i] = lookupCosSin[0][0];
-                oscSin[1][i] = lookupCosSin[1][1];
-                oscCos[1][i] = lookupCosSin[1][0];
-            }
             tmpL[i] = oscCos[0][i] * tmpHL[0][i] - oscSin[0][i] * tmpHL[1][i];
             tmpR[i] = oscCos[1][i] * tmpHR[0][i] - oscSin[1][i] * tmpHR[1][i];
         }
