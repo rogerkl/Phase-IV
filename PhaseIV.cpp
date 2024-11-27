@@ -6,8 +6,6 @@
 #include "dc_blocker.hpp"
 #include "hilbert_iir.hpp"
 #include "svf_osc.hpp"
-#include <random>
-#include <string>
 
 using namespace daisy;
 using namespace patch_sm;
@@ -453,13 +451,13 @@ void ProcessControls()
     frequencyR += finetune_knob * frequencyR * 0.1;
 
     depthL = fclamp((depth_knob + depth_cv_L * depth_cv_knob), 0.f, 0.95f);
-    if (m2s)
+    if (m2s || modIn || mode == MODE_PM_MODOUT)
         depthR = depthL;
     else
         depthR = fclamp((depth_knob + depth_cv_R * depth_cv_knob), 0.f, 0.95f);
 
     svfOscL.setFreq(frequencyL);
-    if (m2s)
+    if (m2s || mode == MODE_FS_MODOUT || mode == MODE_PM_MODOUT)
         svfOscR.setFreq(frequencyL);
     else
         svfOscR.setFreq(frequencyR);
