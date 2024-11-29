@@ -145,6 +145,12 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
 
     for (size_t i = 0; i < size; i++)
     {
+        if (m2s && !modIn && (mode == MODE_FREQUENCY_SHIFT || mode == MODE_FS_MODOUT))
+        {
+            svfOscL.setFreq(frequencyL + depthL * frequencyL * in[1][i]);
+            svfOscR.setFreq(frequencyL + depthR * frequencyR * in[1][i]);
+        }
+
         svfOscL.next();
         svfOscR.next();
         if ((mode == MODE_FREQUENCY_SHIFT || mode == MODE_FS_MODOUT) && !modIn)
@@ -448,7 +454,10 @@ void ProcessControls()
         frequencyR = frequencyL;
     }
     frequencyL += finetune_knob * frequencyL * 0.1;
-    frequencyR += finetune_knob * frequencyR * 0.1;
+    if (m2s || mode == MODE_FS_MODOUT || mode == MODE_PM_MODOUT)
+        frequencyR = frequencyL;
+    else
+        frequencyR += finetune_knob * frequencyR * 0.1;
 
     depthL = fclamp((depth_knob + depth_cv_L * depth_cv_knob), 0.f, 0.95f);
     if (m2s || modIn || mode == MODE_PM_MODOUT)
@@ -456,11 +465,11 @@ void ProcessControls()
     else
         depthR = fclamp((depth_knob + depth_cv_R * depth_cv_knob), 0.f, 0.95f);
 
-    svfOscL.setFreq(frequencyL);
-    if (m2s || mode == MODE_FS_MODOUT || mode == MODE_PM_MODOUT)
-        svfOscR.setFreq(frequencyL);
-    else
+    if (!(m2s && !modIn && (mode == MODE_FREQUENCY_SHIFT || mode == MODE_FS_MODOUT)))
+    {
+        svfOscL.setFreq(frequencyL);
         svfOscR.setFreq(frequencyR);
+    }
 
     mode = static_cast<int>(std::lround(cv3_alt * MODE_FS_MODOUT));
     hpf = fmap(cv2_alt, MIN_FILTER, MAX_FILTER, daisysp::Mapping::LOG);
